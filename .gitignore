@@ -1,0 +1,13 @@
+# Build/test outputs
+artifacts/
+
+# PowerShell module cache
+.psmodules/
+
+# VS Code
+.vscode/
+
+# Temp
+*.tmp
+*.log
+testResults.xml
