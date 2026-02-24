@@ -12,7 +12,7 @@ Describe 'cdev CLI command contract' {
         }
         $script:powerShellHost = $null
         foreach ($candidate in $candidateHosts) {
-            $cmd = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue
+            $cmd = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($null -ne $cmd -and -not [string]::IsNullOrWhiteSpace($cmd.Source)) {
                 $script:powerShellHost = $cmd.Source
                 break

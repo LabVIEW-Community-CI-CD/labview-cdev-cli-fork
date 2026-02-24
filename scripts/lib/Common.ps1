@@ -12,7 +12,7 @@ function Resolve-CdevPowerShellHost {
     }
 
     foreach ($candidate in $candidates) {
-        $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue
+        $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source)) {
             return $command.Source
         }
