@@ -41,6 +41,22 @@ This repository is the control-plane CLI for deterministic `C:\dev` workspace or
 - `scripts/lib/Invoke-NiLinuxDeployCheck.ps1` validates NI Linux image deploy path using Docker Desktop Linux context.
 - Default Linux deploy image: `nationalinstruments/labview:latest-linux`.
 
+## Windows Contract
+- Windows gate orchestration must target Docker Desktop Windows container mode on self-hosted runners.
+- Required gate runner labels:
+  - `self-hosted`
+  - `windows`
+  - `self-hosted-windows-lv`
+  - `windows-containers`
+  - `user-session`
+  - `cdev-surface-windows-gate`
+- Default Windows gate image is `nationalinstruments/labview:2026q1-windows` unless an explicit override is set by policy.
+- Gate container command surface must use Windows PowerShell (`powershell.exe`) and may use host-mounted PowerShell 7, but must not require in-image `pwsh` availability.
+- `g-cli` is a host-side dependency for Windows LabVIEW execution and is not required to exist inside the container image.
+- Gate runs that exercise PPL validation must enforce one bitness per image run (`LVIE_GATE_SINGLE_PPL_BITNESS=32|64`), never serialized dual-bitness in a single run.
+- When gate-required LabVIEW year is `2026`, x86 parity must be enforced before 32-bit PPL validation; if missing, bootstrap `ni-labview-2026-core-x86-en` via NI Package Manager.
+- `VIPM_COMMUNITY_EDITION=true` must be set for Windows image lanes that activate VIPM CLI in community mode.
+
 ## CI Contract
 - Required checks for default branch target:
   - `CI Pipeline`
