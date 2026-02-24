@@ -5,8 +5,10 @@ Control-plane CLI for deterministic `C:\dev` workspace operations.
 ## Entrypoint
 
 ```powershell
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 <group> <command> [options]
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 <group> <command> [options]
 ```
+
+On Linux, invoke the same entrypoint with `pwsh -NoProfile -File`.
 
 ## Commands
 
@@ -26,23 +28,23 @@ pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 <group> <command> [options]
 ## Quick Start
 
 ```powershell
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 repos list
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 repos doctor --workspace-root C:\dev
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 installer exercise --mode fast --iterations 1
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 ci integration-gate --repo svelderrainruiz/labview-cdev-surface --branch main
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 repos list
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 repos doctor --workspace-root C:\dev
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 installer exercise --mode fast --iterations 1
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 ci integration-gate --repo svelderrainruiz/labview-cdev-surface --branch main
 ```
 
 ## Linux Flow (Docker Desktop Linux)
 
 ```powershell
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 linux install --workspace-root C:\dev-linux
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 linux deploy-ni --workspace-root C:\dev-linux --docker-context desktop-linux --image nationalinstruments/labview:latest-linux
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 linux install --workspace-root C:\dev-linux
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 linux deploy-ni --workspace-root C:\dev-linux --docker-context desktop-linux --image nationalinstruments/labview:latest-linux
 ```
 
 ## Release Packaging
 
 ```powershell
-pwsh -NoProfile -File .\scripts\Invoke-CdevCli.ps1 release package --output-root .\artifacts\release\cli
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 release package --output-root .\artifacts\release\cli
 ```
 
 Release artifacts:

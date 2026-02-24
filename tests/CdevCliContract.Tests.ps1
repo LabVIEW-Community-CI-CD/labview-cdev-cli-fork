@@ -1,10 +1,32 @@
-#Requires -Version 7.0
 #Requires -Modules Pester
 
 $ErrorActionPreference = 'Stop'
 
 Describe 'cdev CLI command contract' {
     BeforeAll {
+        $isWindowsHost = [string]::Equals($env:OS, 'Windows_NT', [System.StringComparison]::OrdinalIgnoreCase)
+        $candidateHosts = if ($isWindowsHost) {
+            @('powershell.exe', 'powershell', 'pwsh.exe', 'pwsh')
+        } else {
+            @('pwsh', 'pwsh.exe', 'powershell', 'powershell.exe')
+        }
+        $script:powerShellHost = $null
+        foreach ($candidate in $candidateHosts) {
+            $cmd = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($null -ne $cmd -and -not [string]::IsNullOrWhiteSpace($cmd.Source)) {
+                $script:powerShellHost = $cmd.Source
+                break
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$script:powerShellHost)) {
+            throw "Unable to resolve a PowerShell host executable (tried: $($candidateHosts -join ', '))."
+        }
+
+        $script:powerShellInvocationArgs = @('-NoProfile')
+        if ($isWindowsHost) {
+            $script:powerShellInvocationArgs += @('-ExecutionPolicy', 'RemoteSigned')
+        }
+
         $script:repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..')).Path
         $script:entrypoint = Join-Path $script:repoRoot 'scripts/Invoke-CdevCli.ps1'
         $script:contractPath = Join-Path $script:repoRoot 'cli-contract.json'
@@ -56,7 +78,8 @@ Describe 'cdev CLI command contract' {
 
         try {
             Remove-Item Env:CDEV_SURFACE_ROOT -ErrorAction SilentlyContinue
-            & pwsh -NoProfile -File $script:entrypoint -ReportPath $reportPath help
+            $invokeArgs = @($script:powerShellInvocationArgs + @('-File', $script:entrypoint, '-ReportPath', $reportPath, 'help'))
+            & $script:powerShellHost @invokeArgs
             $LASTEXITCODE | Should -Be 0
             (Test-Path -LiteralPath $reportPath -PathType Leaf) | Should -BeTrue
         } finally {
@@ -76,7 +99,8 @@ Describe 'cdev CLI command contract' {
         $resolvedOutputRoot = [System.IO.Path]::GetFullPath($outputRoot)
 
         try {
-            & pwsh -NoProfile -File $script:entrypoint -ReportPath $reportPath release package --output-root $outputRoot
+            $invokeArgs = @($script:powerShellInvocationArgs + @('-File', $script:entrypoint, '-ReportPath', $reportPath, 'release', 'package', '--output-root', $outputRoot))
+            & $script:powerShellHost @invokeArgs
             $LASTEXITCODE | Should -Be 0
 
             $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json -ErrorAction Stop

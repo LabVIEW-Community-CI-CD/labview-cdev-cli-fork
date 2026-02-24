@@ -15,6 +15,8 @@ This repository is the control-plane CLI for deterministic `C:\dev` workspace or
 
 ## CLI Orchestration Contract
 - CLI entrypoint: `scripts/Invoke-CdevCli.ps1`.
+- Windows invocation contract: `powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 ...`.
+- Linux invocation contract: `pwsh -NoProfile -File ./scripts/Invoke-CdevCli.ps1 ...`.
 - CLI is the preferred operator interface for:
   - repo topology inspection (`repos list`)
   - governance checks (`repos doctor`)

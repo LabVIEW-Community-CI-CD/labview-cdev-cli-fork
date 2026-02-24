@@ -1,5 +1,26 @@
 Set-StrictMode -Version Latest
 
+function Resolve-CdevPowerShellHost {
+    [CmdletBinding()]
+    param()
+
+    $isWindowsHost = [string]::Equals($env:OS, 'Windows_NT', [System.StringComparison]::OrdinalIgnoreCase)
+    $candidates = if ($isWindowsHost) {
+        @('powershell.exe', 'powershell', 'pwsh.exe', 'pwsh')
+    } else {
+        @('pwsh', 'pwsh.exe', 'powershell', 'powershell.exe')
+    }
+
+    foreach ($candidate in $candidates) {
+        $command = Get-Command -Name $candidate -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source)) {
+            return $command.Source
+        }
+    }
+
+    throw "Unable to resolve a PowerShell host executable (tried: $($candidates -join ', '))."
+}
+
 function Get-CdevRepoRoot {
     param([Parameter(Mandatory = $true)][string]$ScriptPath)
     return (Resolve-Path -Path (Join-Path (Split-Path -Parent $ScriptPath) '..')).Path
@@ -78,16 +99,22 @@ function Invoke-CdevPwshScript {
         throw "Script not found: $ScriptPath"
     }
 
-    $argList = @('-NoProfile', '-File', $ScriptPath)
+    $powerShellHost = Resolve-CdevPowerShellHost
+    $argList = @('-NoProfile')
+    if ([string]::Equals($env:OS, 'Windows_NT', [System.StringComparison]::OrdinalIgnoreCase)) {
+        $argList += @('-ExecutionPolicy', 'RemoteSigned')
+    }
+    $argList += @('-File', $ScriptPath)
     if ($null -ne $Arguments -and $Arguments.Count -gt 0) {
         $argList += $Arguments
     }
 
-    & pwsh @argList
-    $exitCode = $LASTEXITCODE
+    & $powerShellHost @argList
+    $exitCode = if ($LASTEXITCODE -ne $null) { [int]$LASTEXITCODE } else { 0 }
 
     return [pscustomobject]@{
         script = $ScriptPath
+        host = $powerShellHost
         arguments = @($Arguments)
         exit_code = $exitCode
         status = if ($exitCode -eq 0) { 'succeeded' } else { 'failed' }

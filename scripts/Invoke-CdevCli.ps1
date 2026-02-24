@@ -1,4 +1,3 @@
-#Requires -Version 7.0
 [CmdletBinding()]
 param(
     [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
@@ -8,11 +7,23 @@ param(
     [string]$SurfaceRoot,
 
     [Parameter()]
-    [string]$ReportPath = (Join-Path (Split-Path -Parent $PSScriptRoot) 'artifacts\cli\cdev-cli-last-run.json')
+    [string]$ReportPath = ''
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace([string]$ReportPath)) {
+    $scriptDirectory = if (-not [string]::IsNullOrWhiteSpace([string]$PSScriptRoot)) {
+        $PSScriptRoot
+    } elseif (-not [string]::IsNullOrWhiteSpace([string]$PSCommandPath)) {
+        Split-Path -Parent $PSCommandPath
+    } else {
+        (Get-Location).Path
+    }
+
+    $ReportPath = Join-Path (Split-Path -Parent $scriptDirectory) 'artifacts\cli\cdev-cli-last-run.json'
+}
 
 $libRoot = Join-Path $PSScriptRoot 'lib'
 foreach ($libFile in @(
@@ -37,7 +48,7 @@ function Show-CdevHelp {
         'cdev control-plane CLI',
         '',
         'Usage:',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 <group> <command> [options]',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 <group> <command> [options]',
         '',
         'Groups and commands:',
         '  help [topic]',
@@ -54,12 +65,12 @@ function Show-CdevHelp {
         '  release package',
         '',
         'Examples:',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 repos list',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 repos doctor --workspace-root C:\dev',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 installer exercise --mode fast --iterations 1',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 postactions collect --report-path C:\dev\artifacts\workspace-install-latest.json',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 linux install --workspace-root C:\dev-linux',
-        '  pwsh -NoProfile -File scripts/Invoke-CdevCli.ps1 linux deploy-ni --workspace-root C:\dev-linux --docker-context desktop-linux'
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 repos list',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 repos doctor --workspace-root C:\dev',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 installer exercise --mode fast --iterations 1',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 postactions collect --report-path C:\dev\artifacts\workspace-install-latest.json',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 linux install --workspace-root C:\dev-linux',
+        '  powershell -NoProfile -ExecutionPolicy RemoteSigned -File scripts/Invoke-CdevCli.ps1 linux deploy-ni --workspace-root C:\dev-linux --docker-context desktop-linux'
     )
 
     if ([string]::IsNullOrWhiteSpace($Topic)) {
@@ -81,7 +92,7 @@ function Show-CdevHelp {
     }
 }
 
-Assert-CdevCommand -Name 'pwsh'
+Resolve-CdevPowerShellHost | Out-Null
 $cliRepoRoot = Get-CdevRepoRoot -ScriptPath $PSCommandPath
 $argsMap = Convert-CdevArgsToMap -InputArgs $CommandArgs
 $script:resolvedSurfaceRoot = $null
