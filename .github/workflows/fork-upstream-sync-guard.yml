@@ -1,0 +1,40 @@
+name: fork-upstream-sync-guard
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  sync-guard:
+    name: Fork/Upstream Sync Guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run parity checks and emit drift report
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $reportPath = Join-Path $env:RUNNER_TEMP 'fork-upstream-sync-drift-report.json'
+
+          & pwsh -NoProfile -File ./scripts/Test-ForkUpstreamSyncGuard.ps1 `
+            -UpstreamRepository 'LabVIEW-Community-CI-CD/labview-cdev-cli' `
+            -ForkRepository 'svelderrainruiz/labview-cdev-cli' `
+            -UpstreamBranch 'main' `
+            -ForkBranch 'main' `
+            -OutputPath $reportPath
+
+      - name: Upload drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fork-upstream-sync-drift-report
+          path: ${{ runner.temp }}/fork-upstream-sync-drift-report.json
+          if-no-files-found: error
