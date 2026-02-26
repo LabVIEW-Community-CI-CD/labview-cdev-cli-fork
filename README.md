@@ -53,3 +53,9 @@ Release artifacts:
 - `.sha256`
 - `cdev-cli.spdx.json`
 - `cdev-cli.slsa.json`
+
+## Operations Runbooks
+
+- Controlled fork/upstream SHA parity recovery:
+  - `docs/runbooks/controlled-force-align.md`
+  - `scripts/Invoke-ControlledForkForceAlign.ps1`

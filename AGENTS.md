@@ -13,6 +13,17 @@ This repository is the control-plane CLI for deterministic `C:\dev` workspace or
   - `gh run rerun ... -R LabVIEW-Community-CI-CD/labview-cdev-cli`
 - Required direct `gh` pin for fork operations: `-R svelderrainruiz/labview-cdev-cli`.
 
+## Controlled Force-Align Exception
+- Exact fork/upstream SHA parity recovery is performed through a controlled exception path.
+- Use `scripts/Invoke-ControlledForkForceAlign.ps1` and follow `docs/runbooks/controlled-force-align.md`.
+- Required sequence:
+  - snapshot branch protection
+  - temporarily relax protection
+  - force-align fork branch ref to upstream SHA
+  - restore branch protection in a finally path
+  - verify SHA parity and required checks.
+- Never leave `allow_force_pushes` enabled after the operation.
+
 ## CLI Orchestration Contract
 - CLI entrypoint: `scripts/Invoke-CdevCli.ps1`.
 - Windows invocation contract: `powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\scripts\Invoke-CdevCli.ps1 ...`.
