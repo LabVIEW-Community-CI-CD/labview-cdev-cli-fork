@@ -83,18 +83,18 @@ $requiredAssets = @(
     'cdev-cli-linux-x64.tar.gz'
 )
 
-$mismatches = New-Object System.Collections.Generic.List[string]
+$mismatches = @()
 $branchMatches = [string]::Equals($upstreamHead, $forkHead, [System.StringComparison]::Ordinal)
 if (-not $branchMatches) {
-    [void]$mismatches.Add('main_head')
+    $mismatches += 'main_head'
 }
 
 $releaseMatches = [string]::Equals($upstreamLatestTag, $forkLatestTag, [System.StringComparison]::Ordinal)
 if (-not $releaseMatches) {
-    [void]$mismatches.Add('latest_release_tag')
+    $mismatches += 'latest_release_tag'
 }
 
-$assetParity = New-Object System.Collections.Generic.List[object]
+$assetParity = @()
 foreach ($assetName in $requiredAssets) {
     $upstreamDigest = [string]$upstreamAssetDigests[$assetName]
     $forkDigest = [string]$forkAssetDigests[$assetName]
@@ -103,15 +103,15 @@ foreach ($assetName in $requiredAssets) {
         [string]::Equals($upstreamDigest, $forkDigest, [System.StringComparison]::Ordinal)
 
     if (-not $assetMatches) {
-        [void]$mismatches.Add("asset_digest:$assetName")
+        $mismatches += "asset_digest:$assetName"
     }
 
-    $assetParity.Add([ordered]@{
+    $assetParity += [ordered]@{
         asset = $assetName
         upstream_digest = $upstreamDigest
         fork_digest = $forkDigest
         matches = $assetMatches
-    })
+    }
 }
 
 $report = [ordered]@{
